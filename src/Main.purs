@@ -2,23 +2,21 @@ module Main where
 
 import Prelude
 
-import Data.Foldable (traverse_)
 import Effect (Effect)
-import Effect.Aff (launchAff_)
-import Effect.Class (liftEffect)
-import Jelly.Aff (awaitBody)
-import Jelly.Component (Component, text)
-import Jelly.Element as JE
-import Jelly.Hooks (runHooks_)
-import Jelly.Hydrate (mount)
-import Jelly.Prop ((:=))
+import Halogen (Component, defaultEval, mkComponent, mkEval)
+import Halogen.Aff (awaitBody, runHalogenAff)
+import Halogen.HTML as HH
+import Halogen.VDom.Driver (runUI)
 
 main :: Effect Unit
-main = launchAff_ do
-  bodyMaybe <- awaitBody
-  liftEffect $ traverse_ (runHooks_ <<< mount component) bodyMaybe
+main = runHalogenAff do
+  body <- awaitBody
+  runUI component unit body
 
-component :: forall m. Component m
+component :: forall q i o m. Component q i o m
 component =
-  JE.div [ "class" := "w-screen h-screen text-5xl flex justify-center items-center" ] do
-    text "Hello Jelly!"
+  mkComponent
+    { initialState: \_ -> unit
+    , render: \_ -> HH.div_ [ HH.text "Hello Halogen!" ]
+    , eval: mkEval $ defaultEval
+    }
